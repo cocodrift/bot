@@ -13,7 +13,7 @@
     }
   ],
   "functions": {
-    "analyse/app.js": {
+    "backend/app.js": {
       "maxDuration": 100
     }
   }
