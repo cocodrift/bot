@@ -11,6 +11,10 @@
       "src": "/(.*)",
       "dest": "backend/app.js"
     }
-  ]
+  ],
+  "functions": {
+    "analyse/app.js": {
+      "maxDuration": 100
+    }
+  }
 }
-
