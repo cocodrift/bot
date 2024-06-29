@@ -152,8 +152,8 @@ app.post('/analyze', async (req, res) => {
     const pair = req.body.pair.toUpperCase(); // Get trading pair from form input
 
     try {
-        // Perform analysis and trading with a timeout of 100 seconds
-        const analysisResult = await analyzeAndTradeWithTimeout(pair, 100000); // 100000 milliseconds = 100 seconds
+        // Perform analysis and trading with a timeout of 60 seconds
+        const analysisResult = await analyzeAndTradeWithTimeout(pair, 60000); // 60000 milliseconds = 60 seconds
 
         // Log the analysisResult to see its structure and values
         console.log('Analysis Result:', analysisResult);
@@ -255,21 +255,6 @@ app.post('/analyze', async (req, res) => {
         res.status(500).send('Error analyzing and trading.');
     }
 });
-
-// Function to perform analysis and trading with timeout
-async function analyzeAndTradeWithTimeout(pair, timeout) {
-    try {
-        const timeoutError = new TimeoutError('Analysis and trading took too long.');
-        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(timeoutError), timeout));
-        const analysisPromise = analyzeAndTrade(pair); // Assuming analyzeAndTrade returns a promise
-
-        // Race between the analysis promise and the timeout promise
-        const result = await Promise.race([analysisPromise, timeoutPromise]);
-        return result;
-    } catch (error) {
-        throw error; // Re-throw any errors caught during the process
-    }
-}
 
 // Function to perform analysis and trading with timeout
 async function analyzeAndTradeWithTimeout(pair, timeout) {
