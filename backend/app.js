@@ -147,7 +147,7 @@ app.get('/', (req, res) => {
     res.send(htmlContent);
 });
 
-export const runtime = 'nodejs';
+const runtime = 'nodejs';
 
 // Handle POST request to analyze trading pair
 app.post('/analyze', async (req, res) => {
