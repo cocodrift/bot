@@ -11,10 +11,6 @@
       "src": "/(.*)",
       "dest": "backend/app.js"
     }
-  ],
-  "functions": {
-    ".analyze/app.js": {
-      "maxDuration": 100
-    }
-  }
+  ]
 }
+
