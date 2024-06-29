@@ -45,8 +45,15 @@ const pipValues = {
 
 // Configure logger
 log4js.configure({
-    appenders: { file: { type: 'file', filename: 'trading_bot.log' } },
-    categories: { default: { appenders: ['file'], level: 'debug' } }
+    appenders: {
+        file: {
+            type: 'file',
+            filename: '/tmp/trading_bot.log',  // Write to /tmp directory
+        }
+    },
+    categories: {
+        default: { appenders: ['file'], level: 'debug' }
+    }
 });
 const logger = log4js.getLogger();
 
