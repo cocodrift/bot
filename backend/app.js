@@ -271,6 +271,21 @@ async function analyzeAndTradeWithTimeout(pair, timeout) {
     }
 }
 
+// Function to perform analysis and trading with timeout
+async function analyzeAndTradeWithTimeout(pair, timeout) {
+    try {
+        const timeoutError = new TimeoutError('Analysis and trading took too long.');
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(timeoutError), timeout));
+        const analysisPromise = analyzeAndTrade(pair); // Assuming analyzeAndTrade returns a promise
+
+        // Race between the analysis promise and the timeout promise
+        const result = await Promise.race([analysisPromise, timeoutPromise]);
+        return result;
+    } catch (error) {
+        throw error; // Re-throw any errors caught during the process
+    }
+}
+
 // Start the server
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
