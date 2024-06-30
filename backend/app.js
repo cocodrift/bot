@@ -1,13 +1,15 @@
 const express = require('express');
-const { TimeoutError } = require('promise-timeout'); // Import TimeoutError if not already imported
+const { TimeoutError } = require('promise-timeout'); // Ensure promise-timeout is imported
 const { analyzeAndTrade } = require('./bot'); // Replace with correct path to bot.js
+const http = require('http'); // Ensure http module is imported
+const timeout = require('connect-timeout');
 
 const app = express();
 const port = 3000;
 const server = http.createServer(app);
 
 // Set a custom timeout value (in milliseconds)
-server.setTimeout(60000)
+server.setTimeout(60000);
 
 // Middleware to parse JSON bodies
 app.use(express.json());
@@ -16,40 +18,15 @@ app.use(express.urlencoded({ extended: true }));
 // Predefined list of currency pairs
 const currencyPairs = [
     // Cryptocurrency pairs
-    'BTC/USD',
-    'ETH/USD',
-    'XRP/USD',
-    'ADA/USD',
-    'DOT/USD',
-    'LTC/USD',
-    'LINK/USD',
-    'XLM/USD',
-    'USDT/USD',
-    'ETH/BTC',
-    'XRP/BTC',
-    'ADA/BTC',
-    'DOT/BTC',
-    'LTC/BTC',
-    'LINK/BTC',
-    'XLM/BTC',
-    'USDT/BTC',
-    
+    'BTC/USD', 'ETH/USD', 'XRP/USD', 'ADA/USD', 'DOT/USD',
+    'LTC/USD', 'LINK/USD', 'XLM/USD', 'USDT/USD', 'ETH/BTC',
+    'XRP/BTC', 'ADA/BTC', 'DOT/BTC', 'LTC/BTC', 'LINK/BTC',
+    'XLM/BTC', 'USDT/BTC',
+
     // Major fiat currency pairs
-    'EUR/USD',
-    'USD/JPY',
-    'GBP/USD',
-    'AUD/USD',
-    'USD/CAD',
-    'USD/CHF',
-    'EUR/JPY',
-    'EUR/GBP',
-    'EUR/AUD',
-    'EUR/CAD',
-    'EUR/CHF',
-    'GBP/JPY',
-    'AUD/JPY',
-    'CAD/JPY',
-    'CHF/JPY',
+    'EUR/USD', 'USD/JPY', 'GBP/USD', 'AUD/USD', 'USD/CAD',
+    'USD/CHF', 'EUR/JPY', 'EUR/GBP', 'EUR/AUD', 'EUR/CAD',
+    'EUR/CHF', 'GBP/JPY', 'AUD/JPY', 'CAD/JPY', 'CHF/JPY',
 ];
 
 // Serve HTML form for trading pair input
@@ -150,8 +127,6 @@ app.get('/', (req, res) => {
     `;
     res.send(htmlContent);
 });
-
-const runtime = 'nodejs';
 
 // Handle POST request to analyze trading pair
 app.post('/analyze', async (req, res) => {
@@ -264,36 +239,31 @@ app.post('/analyze', async (req, res) => {
 
 // Function to perform analysis and trading with timeout and retry
 async function analyzeAndTradeWithTimeout(pair, timeout, maxRetries = 3) {
-    try {
-        const timeoutError = new TimeoutError('Analysis and trading took too long.');
-        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(timeoutError), timeout));
+    const timeoutError = new TimeoutError('Analysis and trading took too long.');
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(timeoutError), timeout));
 
-        let analysisResult;
-        let attempt = 1;
+    let analysisResult;
+    let attempt = 1;
 
-        while (attempt <= maxRetries) {
-            try {
-                analysisResult = await Promise.race([analyzeAndTrade(pair), timeoutPromise]);
-                break; // Break out of the loop if analysis completes within timeout
-            } catch (error) {
-                console.error(`Attempt ${attempt} failed:`, error.message);
-                attempt++;
-                if (attempt <= maxRetries) {
-                    console.log(`Retrying attempt ${attempt}...`);
-                } else {
-                    throw new Error(`Max retries (${maxRetries}) exceeded.`);
-                }
+    while (attempt <= maxRetries) {
+        try {
+            analysisResult = await Promise.race([analyzeAndTrade(pair), timeoutPromise]);
+            break; // Break out of the loop if analysis completes within timeout
+        } catch (error) {
+            console.error(`Attempt ${attempt} failed:`, error.message);
+            attempt++;
+            if (attempt <= maxRetries) {
+                console.log(`Retrying attempt ${attempt}...`);
+            } else {
+                throw new Error(`Max retries (${maxRetries}) exceeded.`);
             }
         }
-
-        return analysisResult;
-    } catch (error) {
-        throw error; // Re-throw any errors caught during the process
     }
+
+    return analysisResult;
 }
 
-
 // Start the server
-app.listen(port, () => {
+server.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
 });
