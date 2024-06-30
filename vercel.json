@@ -2,7 +2,8 @@
   "version": 2,
   "functions": {
     "api": {
-      "handler": "backend/app.js",
+      "runtime": "@vercel/node",
+      "memory": 512,
       "maxDuration": 30
     }
   },
@@ -13,7 +14,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/backend/app.js"
+      "dest": "backend/app.js"
     }
   ]
 }
