@@ -258,20 +258,36 @@ app.post('/analyze', async (req, res) => {
     }
 });
 
-// Function to perform analysis and trading with timeout
-async function analyzeAndTradeWithTimeout(pair, timeout) {
+// Function to perform analysis and trading with timeout and retry
+async function analyzeAndTradeWithTimeout(pair, timeout, maxRetries = 3) {
     try {
         const timeoutError = new TimeoutError('Analysis and trading took too long.');
         const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(timeoutError), timeout));
-        const analysisPromise = analyzeAndTrade(pair); // Assuming analyzeAndTrade returns a promise
 
-        // Race between the analysis promise and the timeout promise
-        const result = await Promise.race([analysisPromise, timeoutPromise]);
-        return result;
+        let analysisResult;
+        let attempt = 1;
+
+        while (attempt <= maxRetries) {
+            try {
+                analysisResult = await Promise.race([analyzeAndTrade(pair), timeoutPromise]);
+                break; // Break out of the loop if analysis completes within timeout
+            } catch (error) {
+                console.error(`Attempt ${attempt} failed:`, error.message);
+                attempt++;
+                if (attempt <= maxRetries) {
+                    console.log(`Retrying attempt ${attempt}...`);
+                } else {
+                    throw new Error(`Max retries (${maxRetries}) exceeded.`);
+                }
+            }
+        }
+
+        return analysisResult;
     } catch (error) {
         throw error; // Re-throw any errors caught during the process
     }
 }
+
 
 // Start the server
 app.listen(port, () => {
