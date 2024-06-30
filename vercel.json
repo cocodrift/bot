@@ -11,5 +11,10 @@
       "src": "/(.*)",
       "dest": "backend/app.js"
     }
-  ]
+  ],
+  "functions": {
+    "yourFunctionName": {
+      "maxDuration": 30 
+    }
+  }
 }
