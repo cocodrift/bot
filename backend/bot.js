@@ -143,17 +143,18 @@ async function calculateDynamicLevels(pair, currentPrice, action, pipsMoved = 50
         takeProfit1 = currentPrice + (pipsMoved * pipValue);
         takeProfit2 = currentPrice + (2 * pipsMoved * pipValue);
         takeProfit3 = currentPrice + (3 * pipsMoved * pipValue);
-        stopLoss = currentPrice - (pipsMoved * pipValue);
+        stopLoss = currentPrice - (pipsMoved / 3 * pipValue); // Adjust stop loss based on winning ratio
     } else if (action === 'sell') {
         takeProfit1 = currentPrice - (pipsMoved * pipValue);
         takeProfit2 = currentPrice - (2 * pipsMoved * pipValue);
         takeProfit3 = currentPrice - (3 * pipsMoved * pipValue);
-        stopLoss = currentPrice + (pipsMoved * pipValue);
+        stopLoss = currentPrice + (pipsMoved / 3 * pipValue); // Adjust stop loss based on winning ratio
     }
 
     console.debug(`TP and SL for ${pair}: takeProfit1=${takeProfit1}, takeProfit2=${takeProfit2}, takeProfit3=${takeProfit3}, stopLoss=${stopLoss}`);
     return { takeProfit1, takeProfit2, takeProfit3, stopLoss };
 }
+
 
 // Fetch OHLCV data with retries
 async function fetchWithRetry(pair, timeframe, retries = 3) {
@@ -276,7 +277,7 @@ async function analyzeAndTrade(pair) {
 
             return {
                 pair: pair,
-                timeframe: '15m',
+                timeframe: '30m',
                 action: finalAction,
                 currentPrice: currentPrice,
                 takeProfit1: finalTakeProfit1,
