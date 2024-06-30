@@ -1,11 +1,10 @@
-const express = require('express');
 const { TimeoutError } = require('promise-timeout'); // Ensure promise-timeout is imported
-const { analyzeAndTrade } = require('./bot'); // Replace with correct path to bot.js
 const http = require('http'); // Ensure http module is imported
 const timeout = require('connect-timeout');
 const ccxt = require('ccxt');
 const { SMA } = require('technicalindicators');
 
+const express = require('express');
 const app = express();
 const port = 3000;
 const server = http.createServer(app);
