@@ -4,7 +4,6 @@
     {
       "src": "backend/app.js",
       "use": "@vercel/node",
-      }
     }
   ],
   "routes": [
