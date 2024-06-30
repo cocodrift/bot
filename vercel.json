@@ -5,7 +5,7 @@
       "src": "backend/app.js",
       "use": "@vercel/node",
       "config": {
-        "maxDuration": 100
+        "maxDuration": 1000  
       }
     }
   ],
