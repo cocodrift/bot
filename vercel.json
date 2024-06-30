@@ -3,7 +3,10 @@
   "builds": [
     {
       "src": "backend/app.js",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": {
+        "maxDuration": 1000
+      }
     }
   ],
   "routes": [
