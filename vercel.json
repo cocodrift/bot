@@ -1,11 +1,11 @@
 {
   "version": 2,
-  "function": [
+  "builds": [
     {
       "src": "backend/app.js",
       "use": "@vercel/node",
       "config": {
-        "maxDuration": 1000  
+        "maxDuration": 60
       }
     }
   ],
@@ -16,4 +16,3 @@
     }
   ]
 }
-  
