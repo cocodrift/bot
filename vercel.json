@@ -2,7 +2,10 @@
   "version": 2,
   "functions": {
     "api": {
-      "runtime": "@vercel/node",
+      "runtime": {
+        "type": "@vercel/node",
+        "version": "1.0.0"
+      },
       "memory": 512,
       "maxDuration": 30
     }
