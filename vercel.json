@@ -1,14 +1,16 @@
 {
   "version": 2,
+  "builds": [
+    {
+      "backend/app.js": {
+        "maxDuration": 100
+      }
+    }
+  ],
   "routes": [
     {
       "src": "/(.*)",
       "dest": "backend/app.js"
     }
-  ],
-  "functions": {
-    "backend/app.js": {
-      "maxDuration": 100
-    }
-  }
+  ]
 }
