@@ -2,7 +2,9 @@
   "version": 2,
   "builds": [
     {
-      "backend/app.js": {
+      "src": "backend/app.js",
+      "use": "@vercel/node",
+      "config": {
         "maxDuration": 100
       }
     }
@@ -14,3 +16,4 @@
     }
   ]
 }
+  
