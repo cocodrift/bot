@@ -1,12 +1,13 @@
 const ccxt = require('ccxt');
 const { SMA } = require('technicalindicators');
-const log4js = require('log4js');
 
+// Configure Kraken API
 const kraken = new ccxt.kraken({
     apiKey: 'Bl4hwEMQChNwcEEePYWhORkcHc7jKrTUeTMP42dpsEo6+vk2xTuxJS0q',
     secret: '1w8DCxt0FwICPzNMr4ymLGimki3ikMRBmJg5J/p1WNiDqXpdVO88HFjmQL7bwTyI+1b5Ln5IqKYWu8u+v4pD3A==',
 });
 
+// Pip values for various trading pairs
 const pipValues = {
     'BTC/USD': 0.50,
     'ETH/USD': 0.05,
@@ -42,14 +43,7 @@ const pipValues = {
     'CHF/JPY': 0.01,
 };
 
-
-// Configure logger
-log4js.configure({
-    appenders: { file: { type: 'file', filename: 'trading_bot.log' } },
-    categories: { default: { appenders: ['file'], level: 'debug' } }
-});
-const logger = log4js.getLogger();
-
+// Identify peaks and troughs in price data
 function identifyPeaksAndTroughs(priceData) {
     let peaks = [];
     let troughs = [];
@@ -65,6 +59,7 @@ function identifyPeaksAndTroughs(priceData) {
     return { peaks, troughs };
 }
 
+// Identify impulsive waves
 function identifyImpulsiveWaves(peaks, troughs) {
     if (peaks.length >= 3 && troughs.length >= 2) {
         return 5; // Found 5-wave pattern
@@ -72,6 +67,7 @@ function identifyImpulsiveWaves(peaks, troughs) {
     return 0;
 }
 
+// Identify corrective waves
 function identifyCorrectiveWaves(peaks, troughs) {
     if (peaks.length >= 2 && troughs.length >= 1) {
         return 3; // Found 3-wave pattern
@@ -79,6 +75,7 @@ function identifyCorrectiveWaves(peaks, troughs) {
     return 0;
 }
 
+// Identify Elliott wave count
 function identifyElliottWaveCount(priceData) {
     let { peaks, troughs } = identifyPeaksAndTroughs(priceData);
     let waveCount = identifyImpulsiveWaves(peaks, troughs);
@@ -90,6 +87,7 @@ function identifyElliottWaveCount(priceData) {
     return waveCount;
 }
 
+// Calculate Fibonacci levels
 function calculateFibonacciLevels(high, low) {
     const diff = high - low;
     return {
@@ -101,6 +99,7 @@ function calculateFibonacciLevels(high, low) {
     };
 }
 
+// Fetch support and resistance levels
 async function fetchSupportResistance(pair, timeframe) {
     try {
         const ohlcv = await kraken.fetchOHLCV(pair, timeframe, undefined, 100);
@@ -112,11 +111,12 @@ async function fetchSupportResistance(pair, timeframe) {
 
         return { support, resistance };
     } catch (error) {
-        logger.error(`Error fetching support/resistance for ${pair} on ${timeframe} timeframe: ${error.message}`);
+        console.error(`Error fetching support/resistance for ${pair} on ${timeframe} timeframe: ${error.message}`);
         throw error;
     }
 }
 
+// Calculate volatility
 async function calculateVolatility(pair, timeframe) {
     try {
         const ohlcv = await kraken.fetchOHLCV(pair, timeframe, undefined, 100);
@@ -129,11 +129,12 @@ async function calculateVolatility(pair, timeframe) {
 
         return volatility;
     } catch (error) {
-        logger.error(`Error calculating volatility for ${pair} on ${timeframe} timeframe: ${error.message}`);
+        console.error(`Error calculating volatility for ${pair} on ${timeframe} timeframe: ${error.message}`);
         throw error;
     }
 }
 
+// Calculate dynamic levels for take profit and stop loss
 async function calculateDynamicLevels(pair, currentPrice, action, pipsMoved = 50) {
     const pipValue = pipValues[pair];
     let takeProfit1, takeProfit2, takeProfit3, stopLoss;
@@ -150,20 +151,23 @@ async function calculateDynamicLevels(pair, currentPrice, action, pipsMoved = 50
         stopLoss = currentPrice + (pipsMoved * pipValue);
     }
 
+    console.debug(`TP and SL for ${pair}: takeProfit1=${takeProfit1}, takeProfit2=${takeProfit2}, takeProfit3=${takeProfit3}, stopLoss=${stopLoss}`);
     return { takeProfit1, takeProfit2, takeProfit3, stopLoss };
 }
 
+// Fetch OHLCV data with retries
 async function fetchWithRetry(pair, timeframe, retries = 3) {
     for (let i = 0; i < retries; i++) {
         try {
-            return await kraken.fetchOHLCV(pair, timeframe, undefined, 20);
+            return await kraken.fetchOHLCV(pair, timeframe);
         } catch (error) {
-            logger.warn(`Attempt ${i + 1} failed for ${pair} on ${timeframe} timeframe: ${error.message}`);
+            console.warn(`Attempt ${i + 1} failed for ${pair} on ${timeframe} timeframe: ${error.message}`);
             if (i === retries - 1) throw error;
         }
     }
 }
 
+// Analyze a specific timeframe for a trading pair
 async function analyzeTimeframe(pair, timeframe) {
     try {
         const ohlcv = await fetchWithRetry(pair, timeframe);
@@ -194,9 +198,9 @@ async function analyzeTimeframe(pair, timeframe) {
         }
 
         if (waveCount === 5 && action === 'buy') {
-            action = 'hold';
+            action = 'sell';
         } else if (waveCount === 3 && action === 'sell') {
-            action = 'hold';
+            action = 'buy';
         }
 
         const { takeProfit1, takeProfit2, takeProfit3, stopLoss } = await calculateDynamicLevels(pair, currentPrice, action);
@@ -218,11 +222,12 @@ async function analyzeTimeframe(pair, timeframe) {
         };
 
     } catch (error) {
-        logger.error(`Error analyzing ${pair} on ${timeframe} timeframe: ${error.message}`);
+        console.error(`Error analyzing ${pair} on ${timeframe} timeframe: ${error.message}`);
         throw error;
     }
 }
 
+// Main function to analyze and trade
 async function analyzeAndTrade(pair) {
     const timeframes = ['1m', '5m', '15m', '30m'];
     let finalAction = 'hold';
@@ -235,7 +240,7 @@ async function analyzeAndTrade(pair) {
         for (const timeframe of timeframes) {
             try {
                 const analysis = await analyzeTimeframe(pair, timeframe);
-                logger.debug(analysis);
+                console.debug(`Analysis for ${pair} on ${timeframe}:`, analysis);
                 analysisResults[timeframe] = analysis.action;
                 if (timeframe === '15m') {
                     finalTakeProfit1 = analysis.takeProfit1;
@@ -244,10 +249,11 @@ async function analyzeAndTrade(pair) {
                     finalStopLoss = analysis.stopLoss;
                 }
             } catch (error) {
-                logger.warn(`Skipping analysis for ${pair} on ${timeframe} timeframe due to error: ${error.message}`);
+                console.warn(`Skipping analysis for ${pair} on ${timeframe} timeframe due to error: ${error.message}`);
             }
         }
 
+        console.debug(`Analysis results:`, analysisResults);
         finalAction = determineFinalAction(analysisResults);
 
         if (finalAction !== 'hold') {
@@ -255,7 +261,7 @@ async function analyzeAndTrade(pair) {
             const currentPrice = ticker.last;
             const volume = ticker.baseVolume;
 
-            logger.info({
+            console.info({
                 pair: pair,
                 timeframe: '15m',
                 action: finalAction,
@@ -286,6 +292,7 @@ async function analyzeAndTrade(pair) {
     }
 }
 
+// Determine the final action based on analysis results
 function determineFinalAction(analysisResults) {
     const actions = Object.values(analysisResults);
     if (actions.length === 0) {
