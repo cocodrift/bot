@@ -4,6 +4,10 @@ const { analyzeAndTrade } = require('./bot'); // Replace with correct path to bo
 
 const app = express();
 const port = 3000;
+const server = http.createServer(app);
+
+// Set a custom timeout value (in milliseconds)
+server.setTimeout(60000)
 
 // Middleware to parse JSON bodies
 app.use(express.json());
